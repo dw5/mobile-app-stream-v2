@@ -9,15 +9,25 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.net.HttpURLConnection
+import java.net.URL
+import org.json.JSONObject
 
 /* WIP
 search https://api.vanillo.tv/v1/search?query=example
-wont https://api.vanillo.tv/v1/playlists/FTWFYu3JS1qpyXEGtdtQ0A/videos
-as series ? https://api.vanillo.tv/v1/profiles/vanillo/videos?offset=0&limit=10
-no need -- video info https://api.vanillo.tv/v1/videos/icecream
-POST "{\"videoId\":\"$keyVideoID\"}" https://api.vanillo.tv/v1/_/watch
-to GET playback links https://api.vanillo.tv/v1/_/watch/manifests?watchToken=$watchToken"
+
+wont ever use? https://api.vanillo.tv/v1/playlists/FTWFYu3JS1qpyXEGtdtQ0A/videos
+as series/tv-show ? https://api.vanillo.tv/v1/profiles/ellie/videos?offset=0&limit=10
+no need bc recommended and search will provide -- direct video info https://api.vanillo.tv/v1/videos/S2D0tfcU-zp
 mainpage https://api.vanillo.tv/v1/videos/recommended?limit=30
+
+TO WATCH
+POST "{\"videoId\":\"$keyVideoID\"}" https://api.vanillo.tv/v1/_/watch
+returns {"status":"success","data":{"watchToken":"4nUSIpyc"}} (<-- they expire real fast)
+to GET playback links https://api.vanillo.tv/v1/_/watch/manifests?watchToken=$watchToken"
+{"status":"success","data":{"media":{"dash":"https://us.cdn.vanillo.tv//manifest.mpd","hls":"https://us.cdn.vanillo.tv//master.m3u8"}}}
 
 more refs: see sampledata.json.txt
 basic watchable video: basic.sh
@@ -26,11 +36,11 @@ basic watchable video: basic.sh
 class VanilloProvider : MainAPI() {
     override var name = "Vanillo"
     override var mainUrl = "https://api.vanillo.tv"
-    override val instantLinkLoading = false // bc If link is stored in the "data" string, so links can be instantly loaded
+    override val instantLinkLoading = false // bc If link is stored in the "data" string, links can be instantly loaded
     override val hasQuickSearch = true
     override val hasChromecastSupport = false // bc Set false if links require referer
     override val hasDownloadSupport = false // bc HLS and DASH?
-	override val hasMainPage = false // for now, has recommended though
+    override val hasMainPage = false // for now, has recommended though
 
 data class VanSearchResponse(val results: List<VanilloSearchItem>)
 data class VanilloSearchResult(
